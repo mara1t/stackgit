@@ -1,6 +1,5 @@
 #define TWO_LVL_PROTECT
 #include "stk_header.h"
-
 #include <math.h>
 
 void StackPush (Stack* stk, const data_type value)
@@ -8,6 +7,7 @@ void StackPush (Stack* stk, const data_type value)
     CHECK_STK_;
    
     if (stk->size == stk->capacity)
+
         StackResize (stk, 2 * stk->capacity, UPPER_MODE);
 
     *(stk->data + stk->size++) = value;
@@ -25,15 +25,15 @@ int StackPop (Stack *stk)
 {
     CHECK_STK_;
 
-    if (stk->size <= 0) {
+    if (stk->size <= 0)
         exit(STACK_UNDERFLOW);
-    }
+
 
     stk->size--;
 
-    if (stk->size * 2 <= stk->capacity) {
+    if (stk->size * 2 <= stk->capacity)
         StackResize (stk, stk->capacity / 2, UNDER_MODE);
-    }
+    
 
     #ifdef TWO_LVL_PROTECT
 
@@ -48,14 +48,17 @@ int StackPop (Stack *stk)
 
 void StackCtor (Stack* stk, const int capacity)  
 {
-    //assert(stk != NULL && stk->data != NULL);
+    assert(stk->data == NULL);
 
     stk->capacity = capacity;
     stk->size = 0;
 
     #ifdef NO_PROTECT
+
         stk->data = (data_type*) calloc(1, stk->capacity * sizeof(data_type));
+    
     #else 
+
         stk->data_canary = (char*) calloc(1, stk->capacity * sizeof(data_type) + 2 * sizeof(can_type));
         stk->data = (data_type*)(stk->data_canary + sizeof(can_type));
 
@@ -64,6 +67,7 @@ void StackCtor (Stack* stk, const int capacity)
 
         LEFT_DATA_CAN_ = const_l_stk_canary;
         RIGHT_DATA_CAN_ = const_r_stk_canary;
+    
     #endif
 
     #ifdef TWO_LVL_PROTECT
@@ -89,6 +93,7 @@ void StackDtor (Stack* stk)
 int StackResize (Stack* stk, const int new_capacity, const int mode)
 {
     CHECK_STK_;
+    
     if (mode == UPPER_MODE && new_capacity <= stk->size)  
         return RESIZE_ERR;
 
@@ -98,16 +103,20 @@ int StackResize (Stack* stk, const int new_capacity, const int mode)
     stk->capacity = new_capacity;
 
     #ifndef NO_PROTECT
+
         RIGHT_DATA_CAN_  = 0;
 
         stk->data_canary = (char*) realloc (stk->data_canary, new_capacity*sizeof(data_type) + 2 * sizeof(can_type));
         stk->data = (data_type*)(stk->data + sizeof(can_type));
 
         RIGHT_DATA_CAN_ = const_r_stk_canary;
+
     #endif
 
     #ifdef NO_PROTECT
+
         stk->data = (data_type*) realloc (stk->data, new_capacity*sizeof(data_type));
+
     #endif
 
     #ifdef TWO_LVL_PROTECT
@@ -117,12 +126,14 @@ int StackResize (Stack* stk, const int new_capacity, const int mode)
     #endif
 
     CHECK_STK_;
+
     return 0;
 }
 
 int StackPeek (Stack* stk)
 {
     CHECK_STK_;
+
     return stk->data[stk->size];
 }
 
@@ -130,17 +141,17 @@ void StackDump (Stack* stk, const int line, const int error, const char* func)
 {
     FILE* canary_file = fopen("canary_errors.txt", "w");
     fprintf(canary_file, "ERROR types:\n"
-    "NO ERROR              =  0\n"
-    "STACK UNDERFLOW       = -1\n"
-    "STACK OVERFLOW        = -2\n"
-    "DATA SIZE ERR         = -3\n"
-    "DATA CAPACITY ERR     = -4\n"
-    "NULL STK POINTER      = -5\n"
-    "DATA LEFT CANARY ERR  = -6\n"
-    "DATA RIGHT CANARY ERR = -7\n"
-    "STK LEFT CANARY ERR   = -8\n"
-    "STK RIGHT CANARY ERR  = -9\n"
-    "HASH ERR              = -10\n\n");
+                         "NO ERROR              =  0\n"
+                         "STACK UNDERFLOW       = -1\n"
+                         "STACK OVERFLOW        = -2\n"
+                         "DATA SIZE ERR         = -3\n"
+                         "DATA CAPACITY ERR     = -4\n"
+                         "NULL STK POINTER      = -5\n"
+                         "DATA LEFT CANARY ERR  = -6\n"
+                         "DATA RIGHT CANARY ERR = -7\n"
+                         "STK LEFT CANARY ERR   = -8\n"
+                         "STK RIGHT CANARY ERR  = -9\n"
+                         "HASH ERR              = -10\n\n");
 
     #ifdef NO_PROTECT
 
@@ -160,7 +171,7 @@ void StackDump (Stack* stk, const int line, const int error, const char* func)
 
         if (error < 0)
         {
-            fprintf(canary_file, "Stack has error type: %d on line %d in func %s\n\n", error, line, func);
+            fprintf(canary_file, "Stack has error status type: %d on line %d in func %s\n\n", error, line, func);
             fprintf(canary_file, "*stk left canary = %X\t"
                                  " stk right canary = %X\n\n"
                                  "*data left canary = %X\t"
@@ -174,13 +185,13 @@ void StackDump (Stack* stk, const int line, const int error, const char* func)
     fprintf(canary_file, "*data pointer = %p; *stack size = %d; *stack capacity = %d\n\n", stk->data, stk->size, stk->capacity);
     
     #ifdef TWO_LVL_PROTECT
+
         fprintf(canary_file, "*stack hash = %d\n\n", stk->hash);
+    
     #endif
 
     for (int counter = 0; counter < stk->size; counter++)
-    {
         fprintf(canary_file, "data[%d] = %d\n", counter, stk->data[counter]);
-    }
 
     fclose(canary_file);
 }
@@ -216,9 +227,7 @@ int check_stk_err(Stack* stk, const int line, const char* func)
     const int error_status = stk_status(stk);
 
     if (error_status < 0)
-    {
         StackDump(stk, line, error_status, func);
-    }
 
     return error_status;
 }
