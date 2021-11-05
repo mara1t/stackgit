@@ -7,10 +7,12 @@ void StackPush (Stack* stk, const data_type value)
     CHECK_STK_;
    
     if (stk->size == stk->capacity)
-
         StackResize (stk, 2 * stk->capacity, UPPER_MODE);
 
-    *(stk->data + stk->size++) = value;
+    else if (stk->size > stk->capacity)
+        exit(0);
+
+    stk->data[stk->size++] = value;
 
     #ifdef TWO_LVL_PROTECT
 
@@ -55,19 +57,19 @@ void StackCtor (Stack* stk, const int capacity)
 
     #ifdef NO_PROTECT
 
-        stk->data = (data_type*) calloc(1, stk->capacity * sizeof(data_type));
+        stk->data = (data_type*) calloc(stk->capacity, sizeof(data_type));
     
     #else 
 
-        stk->data_canary = (char*) calloc(1, stk->capacity * sizeof(data_type) + 2 * sizeof(can_type));
-        stk->data = (data_type*)(stk->data_canary + sizeof(can_type));
+        stk->data_canary = (char*) calloc(stk->capacity * sizeof(data_type) + 2 * sizeof(can_type), sizeof(char));
+        stk->data = (data_type*)((char*)stk->data_canary + sizeof(can_type));
 
         stk->left_stk_can  = const_l_stk_canary;
         stk->right_stk_can = const_r_stk_canary;
 
         LEFT_DATA_CAN_ = const_l_stk_canary;
         RIGHT_DATA_CAN_ = const_r_stk_canary;
-    
+
     #endif
 
     #ifdef TWO_LVL_PROTECT
@@ -75,7 +77,6 @@ void StackCtor (Stack* stk, const int capacity)
        stk->hash = MurMurHash(stk);
 
     #endif
-   
     CHECK_STK_;
 }
 
@@ -209,9 +210,7 @@ int MurMurHash (Stack* stk)
         for (int counterj = 0; counterj < stk->size; counterj++)
         {
             for (int counteri = counterj; counteri < stk->size; counteri++)
-            {
                 sum += (stk->data[counteri] << counteri) * (stk->data[counterj] << counterj);
-            }
 
             sum += (stk->data[counterj] | 10) * (counterj | 30);
         }

@@ -16,7 +16,7 @@
 typedef int data_type;
 typedef int can_type;
 
-const int BASE_STK_SIZE = 2;
+const int BASE_STK_SIZE = 5;
 
 const can_type const_r_stk_canary = 0xDEDADEAD;
 const can_type const_l_stk_canary = 0xDEADBABA;
@@ -28,7 +28,7 @@ enum resize_mode {
 
 enum errors {
 
-    NO_ERROR = 0,
+    NO_ERROR              =  0,
     STACK_UNDERFLOW       = -1,
     STACK_OVERFLOW        = -2,
     DATA_SIZE_ERR         = -3,

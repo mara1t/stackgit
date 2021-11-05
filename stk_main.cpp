@@ -1,3 +1,4 @@
+#define TWO_LVL_PROTECT
 #include "stk_header.h"
 
 int main()
@@ -5,14 +6,13 @@ int main()
     Stack stk = {};
 
     StackCtor (&stk, BASE_STK_SIZE);
-
+    //printf("%X\n", *(data_type*)stk.data);
     StackPush (&stk, 40);
     StackPush (&stk, 50);
-    stk.data[1] = 1; 
+    stk.size++; 
     StackPush (&stk, 60);
     StackPush (&stk, 70);
     StackPush (&stk, 80);
-    
 
     StackDtor(&stk);
 
